@@ -41,6 +41,5 @@ dependency-reduced-pom.xml
 *.iws
 *.idea
 
-# ignore the dev & prod configuration
-application-dev.properties
-application-prod.properties
+# Logs
+logs/
