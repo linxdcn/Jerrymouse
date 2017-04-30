@@ -1,4 +1,4 @@
-package cn.linxdcn;
+package cn.linxdcn.server;
 
 import cn.linxdcn.http.HttpRequest;
 import cn.linxdcn.http.HttpResponse;
@@ -9,12 +9,12 @@ import java.net.Socket;
 /**
  * Created by linxiaodong on 4/29/17.
  */
-public class RequestHandler implements Runnable{
-    private static Logger log = Logger.getLogger(RequestHandler.class);
+public class BioRequestHandler implements Runnable{
+    private static Logger log = Logger.getLogger(BioRequestHandler.class);
 
     private Socket socket;
 
-    public RequestHandler(Socket socket) {
+    public BioRequestHandler(Socket socket) {
         this.socket = socket;
     }
 
