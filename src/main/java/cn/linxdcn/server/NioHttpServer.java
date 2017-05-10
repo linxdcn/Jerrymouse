@@ -41,7 +41,7 @@ public class NioHttpServer implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Web server listening on port " + setting.port + " (press CTRL-C to quit)");
+        logger.info("Web nio server listening on port " + setting.port + " (press CTRL-C to quit)");
 
         SelectionKey key = null;
         while (true) {

@@ -4,7 +4,6 @@ import cn.linxdcn.server.BioHttpServer;
 import cn.linxdcn.server.BioRequestHandler;
 import cn.linxdcn.server.NioHttpServer;
 import cn.linxdcn.server.ServerSetting;
-import com.sun.security.ntlm.Server;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -26,8 +25,10 @@ public class Bootstrap extends Thread {
         setting = new ServerSetting();
 
         try {
-            //new Thread(new BioHttpServer(setting)).start();
-            new Thread(new NioHttpServer(setting)).start();
+            if (setting.getServer().equals("bio"))
+                new Thread(new BioHttpServer(setting)).start();
+            else
+                new Thread(new NioHttpServer(setting)).start();
         }
         catch (IOException e) {
             logger.error("Startup error", e);

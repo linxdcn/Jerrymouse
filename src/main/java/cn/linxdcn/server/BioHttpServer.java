@@ -27,7 +27,7 @@ public class BioHttpServer implements Runnable {
     @Override
     public void run() {
 
-        logger.info("Web server listening on port " + setting.port + " (press CTRL-C to quit)");
+        logger.info("Web bio server listening on port " + setting.port + " (press CTRL-C to quit)");
 
         ExecutorService executor = Executors.newFixedThreadPool(setting.maxThread);
 

@@ -2,6 +2,7 @@ package cn.linxdcn.server;
 
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,17 +29,13 @@ public class ServerSetting {
 
     int maxThread;
 
-    public ServerSetting() {
-        ClassLoader classLoader = ServerSetting.class.getClassLoader();
-        URL resource = classLoader.getResource("config.properties");
-        String path = resource.getPath();
+    String server;
 
+    public ServerSetting() {
         Properties pro = null;
         try {
             pro = new Properties();
-            FileInputStream in = new FileInputStream(path);
-            pro.load(in);
-            in.close();
+            pro.load(ServerSetting.class.getResourceAsStream("/config.properties"));
         } catch (IOException e) {
             logger.info("Config file error, using default value", e);
         }
@@ -48,7 +45,7 @@ public class ServerSetting {
         maxThread = MAX_THREAD;
 
         if (pro != null) {
-            Set names = pro.stringPropertyNames();
+            Set<String> names = pro.stringPropertyNames();
             if (names.contains("port")) {
                 port = Integer.valueOf(pro.getProperty("port"));
             }
@@ -58,6 +55,8 @@ public class ServerSetting {
             if (names.contains("maxThread")) {
                 maxThread = Integer.valueOf(pro.getProperty("maxThread"));
             }
+
+            server = pro.getProperty("server", "bio");
         }
     }
 
@@ -83,5 +82,13 @@ public class ServerSetting {
 
     public int getMaxThread() {
         return maxThread;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
     }
 }
