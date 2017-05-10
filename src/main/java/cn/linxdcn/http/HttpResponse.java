@@ -3,118 +3,79 @@ package cn.linxdcn.http;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by linxiaodong on 4/29/17.
  */
-public class HttpResponse {
+public class HttpResponse implements Response{
 
     private static Logger log = Logger.getLogger(HttpResponse.class);
 
-    public static final String VERSION = "HTTP/1.1";
+    private List<String> headers = new ArrayList<String>();
 
-    List<String> headers = new ArrayList<String>();
+    private byte[] body;
 
-    byte[] body;
+    private ContentType contentType;
 
-    public HttpResponse(HttpRequest req) throws IOException {
+    private Status status;
 
-        switch (req.method) {
-            case HEAD:
-                fillHeaders(Status._200);
-                break;
-            case GET:
-                try {
-                    fillHeaders(Status._200);
-                    File file = new File("." + req.uri);
-                    if (file.isDirectory()) {
-                        headers.add(ContentType.HTML.toString());
-                        StringBuilder result = new StringBuilder("<html><head><title>Index of ");
-                        result.append(req.uri);
-                        result.append("</title></head><body><h1>Index of ");
-                        result.append(req.uri);
-                        result.append("</h1><hr><pre>");
-
-                        File[] files = file.listFiles();
-                        for (File subfile : files) {
-                            result.append(" <a href=\"" + subfile.getPath() + "\">" + subfile.getPath() + "</a>\n");
-                        }
-                        result.append("<hr></pre></body></html>");
-                        fillResponse(result.toString());
-                    } else if (file.exists()) {
-                        setContentType(req.uri, headers);
-                        fillResponse(getBytes(file));
-                    } else {
-                        log.info("File not found:" + req.uri);
-                        fillHeaders(Status._404);
-                        fillResponse(Status._404.toString());
-                    }
-                } catch (Exception e) {
-                    log.error("Response Error", e);
-                    fillHeaders(Status._400);
-                    fillResponse(Status._400.toString());
-                }
-
-                break;
-            case UNRECOGNIZED:
-                fillHeaders(Status._400);
-                fillResponse(Status._400.toString());
-                break;
-            default:
-                fillHeaders(Status._501);
-                fillResponse(Status._501.toString());
-        }
-
+    @Override
+    public List<String> getHeaders() {
+        return headers;
     }
 
-    private byte[] getBytes(File file) throws IOException {
-        int length = (int) file.length();
-        byte[] array = new byte[length];
-        InputStream in = new FileInputStream(file);
-        int offset = 0;
-        while (offset < length) {
-            int count = in.read(array, offset, (length - offset));
-            offset += count;
-        }
-        in.close();
-        return array;
+    @Override
+    public byte[] getBody() {
+        return body;
     }
 
-    private void fillHeaders(Status status) {
-        headers.add(HttpResponse.VERSION + " " + status.toString());
-        headers.add("Connection: close");
-        headers.add("Server: jerrymouse");
+    @Override
+    public ContentType getContentType() {
+        return contentType;
     }
 
-    private void fillResponse(String response) {
-        body = response.getBytes();
+    @Override
+    public Status getStatus() {
+        return status;
     }
 
-    private void fillResponse(byte[] response) {
-        body = response;
+    @Override
+    public void setHeaders(List<String> headers) {
+        this.headers = headers;
     }
 
-    public void write(OutputStream os) throws IOException {
-        DataOutputStream output = new DataOutputStream(os);
+    @Override
+    public void setBody(byte[] body) {
+        this.body = body;
+    }
+
+    @Override
+    public void setContentType(ContentType contentType) {
+        this.contentType = contentType;
+    }
+
+    @Override
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         for (String header : headers) {
-            output.writeBytes(header + "\r\n");
+            sb.append(header + "\r\n");
         }
-        output.writeBytes("\r\n");
+        sb.append("\r\n");
         if (body != null) {
-            output.write(body);
+            sb.append(new String(body));
         }
-        output.writeBytes("\r\n");
-        output.flush();
-    }
 
-    private void setContentType(String uri, List<String> list) {
-        try {
-            String ext = uri.substring(uri.lastIndexOf(".") + 1);
-            list.add(ContentType.valueOf(ext.toUpperCase()).toString());
-        } catch (Exception e) {
-            log.error("ContentType not found: " + e, e);
-        }
+        sb.append("\r\n");
+        return sb.toString();
     }
 }

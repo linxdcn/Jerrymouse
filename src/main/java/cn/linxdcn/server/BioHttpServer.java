@@ -16,25 +16,28 @@ public class BioHttpServer implements Runnable {
 
     ServerSetting setting;
 
-    public BioHttpServer() {
-        setting = new ServerSetting();
+    ServerSocket ss;
+
+    public BioHttpServer(ServerSetting setting) throws IOException {
+        this.setting = setting;
+
+        ss = new ServerSocket(setting.port);
     }
 
     @Override
     public void run() {
+
+        logger.info("Web server listening on port " + setting.port + " (press CTRL-C to quit)");
+
+        ExecutorService executor = Executors.newFixedThreadPool(setting.maxThread);
+
         try {
-            ServerSocket ss = new ServerSocket(setting.port);
-
-            logger.info("Web server listening on port " + setting.port + " (press CTRL-C to quit)");
-
-            ExecutorService executor = Executors.newFixedThreadPool(setting.maxThread);
-
-            while (true) {
+            while (!Thread.interrupted()) {
                 executor.submit(new BioRequestHandler(ss.accept()));
             }
         }
         catch (IOException e) {
-            logger.error("Startup Error", e);
+            logger.error("Runtime error", e);
         }
 
     }

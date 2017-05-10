@@ -6,49 +6,115 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by linxiaodong on 4/29/17.
  */
-public class HttpRequest {
+public class HttpRequest implements Request{
 
     private static Logger log = Logger.getLogger(HttpRequest.class);
 
-    List<String> headers = new ArrayList<String>();
+    private Map<String, Object> attributes = new HashMap<String, Object>();
 
-    Method method;
+    private Map<String, Object> headers = new HashMap<String, Object>();
 
-    String uri;
+    private Method method;
 
-    String version;
+    private String uri;
 
-    public HttpRequest(InputStream is) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        String str = reader.readLine();
-        parseRequestLine(str);
+    private String protocol;
 
-        while (!str.equals("")) {
-            str = reader.readLine();
-            parseRequestHeader(str);
+    public HttpRequest(String httpHeader) {
+        init(httpHeader);
+    }
+
+    private void init(String httpHeader) {
+        String[] headers = httpHeader.split("\r\n");
+
+        if (log.isDebugEnabled()) {
+            for (String s : headers)
+                log.debug(s);
+        }
+
+        initMethod(headers[0]);
+
+        initURI(headers[0]);
+
+        initProtocol(headers[0]);
+
+        initRequestHeaders(headers);
+    }
+
+    private void initMethod(String str) {
+        method = Method.valueOf(str.substring(0, str.indexOf(" ")));
+    }
+
+    private void initURI(String str) {
+        uri = str.substring(str.indexOf(" ") + 1, str.indexOf(" ", str.indexOf(" ") + 1));
+
+        if(method == Method.GET) {
+            if(uri.contains("?")) {
+                String attr = uri.substring(uri.indexOf("?") + 1, uri.length());
+                uri = uri.substring(0, uri.indexOf("?"));
+                initAttribute(attr);
+            }
         }
     }
 
-    private void parseRequestLine(String str) {
-        log.info(str);
-        String[] split = str.split("\\s+");
-        try {
-            method = Method.valueOf(split[0]);
-        } catch (Exception e) {
-            method = Method.UNRECOGNIZED;
+    private void initAttribute(String attr) {
+        String[] attrs = attr.split("&");
+        for (String string : attrs) {
+            String key = string.substring(0, string.indexOf("="));
+            String value = string.substring(string.indexOf("=") + 1);
+            attributes.put(key, value);
         }
-        uri = split[1];
-        version = split[2];
     }
 
-    private void parseRequestHeader(String str) {
-        log.info(str);
-        headers.add(str);
+    private void initProtocol(String str) {
+        protocol = str.substring(str.lastIndexOf(" ") + 1, str.length());
+    }
+
+    private void initRequestHeaders(String[] strs) {
+        for(int i = 1; i < strs.length; i++) {
+            String key = strs[i].substring(0, strs[i].indexOf(":"));
+            String value = strs[i].substring(strs[i].indexOf(":") + 1);
+            headers.put(key, value);
+        }
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public Method getMethod() {
+        return method;
+    }
+
+    @Override
+    public String getUri() {
+        return uri;
+    }
+
+    @Override
+    public String getProtocol() {
+        return protocol;
+    }
+
+    @Override
+    public Map<String, Object> getHeaders() {
+        return headers;
+    }
+
+    @Override
+    public Set<String> getHeaderNames() {
+        return headers.keySet();
+    }
+
+    @Override
+    public Object getHeader(String key) {
+        return headers.get(key);
     }
 }
